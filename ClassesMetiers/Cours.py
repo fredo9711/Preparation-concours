@@ -3,15 +3,47 @@ from SessionQCM import SessionQCM
 from Databasemanager import DatabaseManager
 
 class Course:
-    def __init__(self,nom_course: str, db_manager:DatabaseManager, id_course=None ):
+    def __init__(self,nom_course: str, db_manager:DatabaseManager, id_course:int=None ):
         self.id_course = id_course
         self.nom_course = nom_course
         self.sessions: List[SessionQCM] = []
         self.db = db_manager
 
+        if self.id_course:
+            self.charger_sessions_depuis_db()
+
     def ajouter_session(self, session: SessionQCM):
         session.id_course = self.id_course
         self.sessions.append(session)
+
+    def charger_sessions_depuis_db(self):
+        sessions_data = self.db.obtenir_sessions_par_course(self.id_course)
+        
+        self.sessions = [
+            SessionQCM( nom_session=session["nom_session"],
+                        id_course=session["id_course"],
+                        temps_passe=session["temps_passe"],
+                        maitrise=session["taux_maitrise"],
+                        db_manager=self.db,
+                        id_session=session["id_session"]
+                        )
+                        for session in sessions_data
+
+        ]
+    
+    def sauvegarder_course(self):
+        if not self.id_course:
+            self.id_course = self.db.ajouter_course(self.nom_course)
+        else:
+            self.db.modifier_nom_course(self.id_course, self.nom_course)
+
+        for session in self.sessions:
+            session.sauvegarder_session(session.temps_passe, session.maitrise)
+
+    def supprimer_session(self, id_session):
+        self.db.supprimer_session(id_session)
+        self.sessions = [s for s in self.sessions if s.id_session != id_session]
+
 
     def retirer_session(self, id_session: int):
         self.sessions = [s for s in self.sessions if s.id_session != id_session]
@@ -33,8 +65,8 @@ class Course:
                 session.id_session = db_manager.ajouter_session(
                     nom_session=session.nom_session,
                     id_course=self.id_course,
-                    temps_passe=session.temps_passe(),
-                    taux_maitrise=session.evaluer_session()
+                    temps_passe=session.temps_passe,
+                    taux_maitrise=session.maitrise
                 )
             else:
                 db_manager.mettre_a_jour_session(

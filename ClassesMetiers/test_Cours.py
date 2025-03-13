@@ -2,27 +2,47 @@ import unittest
 from unittest.mock import MagicMock
 from Cours import Course
 from SessionQCM import SessionQCM
+import os
+from Databasemanager import DatabaseManager
 
 class TestCourse(unittest.TestCase):
 
     def setUp(self):
-        self.session1 = SessionQCM(1, "Session 1", [])
-        self.session1.temps_passe = lambda: 120  # 2 minutes
-        self.session1.evaluer_session = lambda: 100  # 100%
+        self.db_path = "test_course.db"
+        self.db = DatabaseManager(self.db_path)
+        self.course = Course("Mathématiques", self.db)
+        self.course.id_course = self.db.ajouter_course("Mathématiques")
 
-        self.session2 = SessionQCM(2, "Session 2", [])
-        self.session2 = SessionQCM(2, "Session 2", [])
-        self.session2.temps_passe = lambda: 180  # 3 minutes
-        self.session2.evaluer_session = lambda: 50  # 50%
+        # Création et sauvegarde de sessions
+        self.session1 = SessionQCM("Algèbre", self.db, self.course.id_course, temps_passe=120, maitrise=100.0)
+        self.session2 = SessionQCM("Géométrie", self.db, self.course.id_course, temps_passe=240, maitrise=80.0)
+        self.course.ajouter_session(self.session1)
+        self.course.ajouter_session(self.session2)
 
-        self.course = Course(1, "Cours de Mathématiques")
-        self.course.sessions = [self.session1, self.session2]
+    def tearDown(self):
+        self.db.conn.close()
+        import os
+        os.remove(self.db_path)
 
-    def test_temps_total_passe(self):
-        self.assertEqual(self.course.temps_total_passe(), 300)
+    def test_sauvegarde_et_chargement_course_sessions(self):
+        # Sauvegarde
+        self.course.sauvegarder(self.db)
 
-    def test_taux_maitrise_global(self):
-        self.assertEqual(self.course.taux_maitrise_global(), 75.0)  # moyenne de 100% et 50%
+        # Chargement
+        course_charge = Course("Mathématiques", self.db, id_course=self.course.id_course)
+
+        self.assertEqual(course_charge.nom_course, "Mathématiques")
+        self.assertEqual(len(course_charge.sessions), 2)
+        self.assertEqual(course_charge.sessions[0].nom_session, "Algèbre")
+        self.assertEqual(course_charge.sessions[1].nom_session, "Géométrie")
+
+    def test_supprimer_session(self):
+        self.course.sauvegarder(self.db)
+        self.course.supprimer_session(self.session1.id_session)
+
+        sessions_restantes = self.db.obtenir_sessions_par_course(self.course.id_course)
+        self.assertEqual(len(sessions_restantes), 1)
+        self.assertEqual(sessions_restantes[0]["nom_session"], "Géométrie")
 
 if __name__ == '__main__':
     unittest.main()
