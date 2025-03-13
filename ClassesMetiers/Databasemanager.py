@@ -25,6 +25,16 @@ class DatabaseManager:
                 FOREIGN KEY (id_course) REFERENCES courses(id_course) ON DELETE CASCADE
             )
         """)
+
+        self.cursor.execute("""
+        CREATE TABLE IF NOT EXISTS questions (
+            id_question INTEGER PRIMARY KEY AUTOINCREMENT,
+            question TEXT NOT NULL,
+            reponse TEXT NOT NULL,
+            id_session INTEGER,
+            FOREIGN KEY (id_session) REFERENCES sessions(id_session) ON DELETE CASCADE
+    )
+""")
         self.conn.commit()
 
     # --- CRUD sur Cours ---
@@ -75,6 +85,48 @@ class DatabaseManager:
         self.cursor.execute("""
             UPDATE sessions SET temps_passe=?, taux_maitrise=? WHERE id_session=?""",
             (temps_passe, taux_maitrise, id_session)
+        )
+        self.conn.commit()
+
+
+    
+    def ajouter_question(self, question, reponse, id_session):
+        self.cursor.execute(
+            "INSERT INTO questions (question, reponse, id_session) VALUES (?, ?, ?)",
+            (question, reponse, id_session)
+        )
+        self.conn.commit()
+        return self.cursor.lastrowid
+
+    # Obtenir une question précise
+    def get_question(self, id_question):
+        self.cursor.execute(
+            "SELECT * FROM questions WHERE id_question = ?",
+            (id_question,)
+        )
+        return self.cursor.fetchone()
+
+    # Obtenir toutes les questions d'une session
+    def get_questions_for_session(self, id_session):
+        self.cursor.execute(
+            "SELECT * FROM questions WHERE id_session = ?",
+            (id_session,)
+        )
+        return self.cursor.fetchall()
+
+    # Modifier une question précise
+    def update_question(self, id_question, question, reponse):
+        self.cursor.execute(
+            "UPDATE questions SET question=?, reponse=? WHERE id_question=?",
+            (question, reponse, id_question)
+        )
+        self.conn.commit()
+
+    # Supprimer une question précise
+    def delete_question(self, id_question):
+        self.cursor.execute(
+            "DELETE FROM questions WHERE id_question=?",
+            (id_question,)
         )
         self.conn.commit()
 

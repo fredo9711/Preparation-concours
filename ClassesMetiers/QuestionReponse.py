@@ -2,18 +2,26 @@ import requests
 import json
 
 class Question:
-    def __init__(self,id_question: int, question: str, reponse: str):
+    def __init__(self, question: str, reponse: str,id_session=None,id_question=None):
         self.id_question = id_question
         self.question = question
         self.reponse = reponse
+        self.id_session = id_session
 
     def verification_reponse(self,utilisateur_reponse:str)-> int:
         api_url = "http://localhost:1337/v1/chat/completions"
         headers = {"Content-Type": "application/json"}
 
         prompt = f"""Je vais te donner une question suivie de la réponse correcte, et enfin une réponse que j’ai moi-même rédigée.
-Ta tâche est de me retourner uniquement un entier (entre 0 si j'ai rien compris et 100 si j'ai parfaitement compris) indiquant ma compréhension uniquement par rapport à la question réponse founis si j'ai exactement la même chose ou si j'ai parfaitement compris donne moi la note maximale.
+TA TÂCHE EST IMPÉRATIVEMENT DE ME RETOURNER UN ENTIER UNIQUEMENT (entre 0 et 100) basé sur ces critères :
 
+- 100 : La réponse est parfaitement correcte et complète.
+- 80-99 : La réponse est correcte avec quelques erreurs mineures ou imprécisions.
+- 60-79 : La réponse est partiellement correcte mais manque de précision ou d'exemples clés.
+- 40-59 : La réponse contient des éléments corrects mais présente des erreurs importantes.
+- 20-39 : La réponse est en grande partie incorrecte mais montre quelques signes de compréhension.
+- 1-19 : La réponse est largement hors sujet avec peu d'éléments valides.
+- 0 : La réponse est totalement hors sujet ou incompréhensible.
 Question :
 {self.question}
 
@@ -23,10 +31,11 @@ Réponse correcte attendue :
 Ma réponse :
 {utilisateur_reponse}
 
-repond moi uniquement un entier JE NE VEUX PAS DE TEXTE JUSTE UN ENTIER"""
+RÉPONDS UNIQUEMENT PAR UN ENTIER. TOUT TEXTE SUPPLÉMENTAIRE EST INTERDIT.
+NE DONNE AUCUN TEXTE SUPPLÉMENTAIRE, AUCUNE EXPLICATION, AUCUN MOT. SEULEMENT UN ENTIER."""
 
         data = {
-            "model": "llama3.1-8b-instruct",
+            "model": "phi3-medium",
             "messages": [{"role": "user", "content": prompt}]
         }
 
