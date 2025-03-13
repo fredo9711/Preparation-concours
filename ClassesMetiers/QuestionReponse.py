@@ -35,7 +35,7 @@ RÉPONDS UNIQUEMENT PAR UN ENTIER. TOUT TEXTE SUPPLÉMENTAIRE EST INTERDIT.
 NE DONNE AUCUN TEXTE SUPPLÉMENTAIRE, AUCUNE EXPLICATION, AUCUN MOT. SEULEMENT UN ENTIER."""
 
         data = {
-            "model": "phi3-medium",
+            "model": "llama3.1-8b-instruct",
             "messages": [{"role": "user", "content": prompt}]
         }
 
