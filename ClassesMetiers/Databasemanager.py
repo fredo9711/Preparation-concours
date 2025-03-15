@@ -1,6 +1,6 @@
 import sqlite3
 from typing import List
-
+from datetime import datetime
 class DatabaseManager:
     def __init__(self, db_path="app.db"):
         self.conn = sqlite3.connect(db_path)
@@ -22,6 +22,8 @@ class DatabaseManager:
                 id_course INTEGER,
                 temps_passe INTEGER DEFAULT 0,
                 taux_maitrise FLOAT DEFAULT 0.0,
+                courbe_oubli INTEGER DEFAULT 0,
+                prochaine_revision DATE DEFAULT 0,
                 FOREIGN KEY (id_course) REFERENCES courses(id_course) ON DELETE CASCADE
             )
         """)
@@ -60,11 +62,11 @@ class DatabaseManager:
         self.conn.commit()
 
     # --- CRUD sur Sessions ---
-    def ajouter_session(self, nom_session: str, id_course: int, temps_passe: int, taux_maitrise: float) -> int:
+    def ajouter_session(self, nom_session: str, id_course: int, temps_passe: int, taux_maitrise: float,courbe_oubli:int=0,prochaine_revision:datetime=0) -> int:
         self.cursor.execute("""
-            INSERT INTO sessions (nom_session, id_course, temps_passe, taux_maitrise) 
-            VALUES (?, ?, ?, ?)""", 
-            (nom_session, id_course, temps_passe, taux_maitrise)
+            INSERT INTO sessions (nom_session, id_course, temps_passe, taux_maitrise,courbe_oubli,prochaine_revision) 
+            VALUES (?, ?, ?, ?,?,?)""", 
+            (nom_session, id_course, temps_passe, taux_maitrise,courbe_oubli,prochaine_revision)
         )
         self.conn.commit()
         return self.cursor.lastrowid
@@ -81,10 +83,10 @@ class DatabaseManager:
         self.cursor.execute("DELETE FROM sessions WHERE id_session=?", (id_session,))
         self.conn.commit()
 
-    def mettre_a_jour_session(self, id_session: int, temps_passe: int, taux_maitrise: float):
+    def mettre_a_jour_session(self, id_session: int, temps_passe: int, taux_maitrise: float,courbe_oubli:int,prochaine_revision:datetime):
         self.cursor.execute("""
-            UPDATE sessions SET temps_passe=?, taux_maitrise=? WHERE id_session=?""",
-            (temps_passe, taux_maitrise, id_session)
+            UPDATE sessions SET temps_passe=?, taux_maitrise=?, courbe_oubli=?, prochaine_revision=?  WHERE id_session=?""",
+            (temps_passe, taux_maitrise,courbe_oubli,prochaine_revision, id_session)
         )
         self.conn.commit()
 

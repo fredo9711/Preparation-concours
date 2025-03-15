@@ -1,5 +1,6 @@
 import unittest
 import os
+from datetime import datetime
 from Databasemanager import DatabaseManager
 
 class TestDatabaseManager(unittest.TestCase):
@@ -48,7 +49,7 @@ class TestDatabaseManager(unittest.TestCase):
         id_course = self.db.ajouter_course("Géographie")
         id_session = self.db.ajouter_session("Villes", id_course, 120, 50.0)
 
-        self.db.mettre_a_jour_session(id_session, 300, 75.5)
+        self.db.mettre_a_jour_session(id_session,300,75.5,0,datetime(2025,8,21))
         sessions = self.db.obtenir_sessions_par_course(id_course)
 
         self.assertEqual(sessions[0]["temps_passe"], 300)

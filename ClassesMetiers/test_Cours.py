@@ -14,8 +14,8 @@ class TestCourse(unittest.TestCase):
         self.course.id_course = self.db.ajouter_course("Mathématiques")
 
         # Création et sauvegarde de sessions
-        self.session1 = SessionQCM("Algèbre", self.db, self.course.id_course, temps_passe=120, maitrise=100.0)
-        self.session2 = SessionQCM("Géométrie", self.db, self.course.id_course, temps_passe=240, maitrise=80.0)
+        self.session1 = SessionQCM("Algèbre", self.db, self.course.id_course, temps_passe=120, maitrise=100.0,courbe_oublie=0,prochaine_revision=0)
+        self.session2 = SessionQCM("Géométrie", self.db, self.course.id_course, temps_passe=240, maitrise=80.0,courbe_oublie=0,prochaine_revision=0)
         self.course.ajouter_session(self.session1)
         self.course.ajouter_session(self.session2)
 

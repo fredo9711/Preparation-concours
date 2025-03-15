@@ -4,7 +4,7 @@ from QuestionReponse import Question
 from Databasemanager import DatabaseManager
 
 class SessionQCM:
-    def __init__(self,nom_session: str,db_manager: DatabaseManager,id_course:int,temps_passe:int,maitrise:float,id_session=None):
+    def __init__(self,nom_session: str,db_manager: DatabaseManager,id_course:int,temps_passe:int,maitrise:float,id_session=None,courbe_oublie:int=0,prochaine_revision:datetime=None):
         self.id_session = id_session
         self.id_course = id_course
         self.nom_session = nom_session
@@ -12,6 +12,9 @@ class SessionQCM:
         self.questions: List[Question] =[]
         self.temps_passe = temps_passe
         self.maitrise = maitrise
+        self.courbe_oublie = courbe_oublie
+        self.prochaine_revision= prochaine_revision
+
 
 
         if self.id_session:
@@ -38,13 +41,13 @@ class SessionQCM:
             for q in questions_data
         ]
 
-    def sauvegarder_session(self, temps_passe: int, taux_maitrise: float):
+    def sauvegarder_session(self, temps_passe: int, taux_maitrise: float,courbe_oubli:int,prochaine_revision:datetime):
         if self.id_session is None:
             self.id_session = self.db.ajouter_session(
-                self.nom_session, self.id_course, temps_passe, taux_maitrise
+                self.nom_session, self.id_course, temps_passe, taux_maitrise,courbe_oubli,prochaine_revision
             )
         else:
-            self.db.mettre_a_jour_session(self.id_session, temps_passe=temps_passe, taux_maitrise=taux_maitrise)
+            self.db.mettre_a_jour_session(self.id_session, temps_passe=temps_passe, taux_maitrise=taux_maitrise,courbe_oubli=courbe_oubli,prochaine_revision=prochaine_revision)
 
     def supprimer_question(self, id_question):
         self.db.delete_question(id_question)

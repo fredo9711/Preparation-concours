@@ -1,5 +1,6 @@
 import csv
 from Databasemanager import DatabaseManager
+from datetime import datetime
 
 class CSVHandler:
     def __init__(self, db_manager: DatabaseManager, id_course: int):
@@ -16,11 +17,21 @@ class CSVHandler:
                 reponse = ligne["reponse"]
                 temps_passe = int(ligne.get("temps_passe", 0))
                 maitrise = float(ligne.get("maitrise", 0.0))
+                courbe_oubli = int(ligne.get("courbe_oubli",0))
+                prochaine_revision = ligne.get("prochaine_revision",None)
+            
+                if prochaine_revision:
+                    try:
+                        prochaine_revision = datetime.strptime(prochaine_revision, '%Y-%m-%d %H:%M:%S')
+                    except ValueError:
+                        print(f"Erreur : format de date incorrect pour '{prochaine_revision}'")
 
                 if nom_session not in sessions_csv:
                     sessions_csv[nom_session] = {
                         'temps_passe': temps_passe,
                         'maitrise': maitrise,
+                        'courbe_oubli': courbe_oubli,
+                        'prochaine_revision': prochaine_revision,
                         'questions': []
                     }
 
@@ -32,9 +43,9 @@ class CSVHandler:
         for nom_session, details in sessions_csv.items():
             if nom_session in sessions_db:
                 session_id = sessions_db[nom_session]["id_session"]
-                self.db.mettre_a_jour_session(session_id, details['temps_passe'], details['maitrise'])
+                self.db.mettre_a_jour_session(session_id, details['temps_passe'], details['maitrise'],details['courbe_oubli'],details['prochaine_revision'])
             else:
-                session_id = self.db.ajouter_session(nom_session, self.id_course, details['temps_passe'], details['maitrise'])
+                session_id = self.db.ajouter_session(nom_session, self.id_course, details['temps_passe'], details['maitrise'],details['courbe_oubli'],details['prochaine_revision'])
 
             questions_db = {q["question"]: q for q in self.db.get_questions_for_session(session_id)}
 
@@ -62,7 +73,7 @@ class CSVHandler:
         sessions_db = self.db.obtenir_sessions_par_course(self.id_course)
 
         with open(chemin_csv, 'w', newline='', encoding='utf-8') as csvfile:
-            fieldnames = ['nom_session', 'temps_passe', 'maitrise', 'question', 'reponse']
+            fieldnames = ['nom_session', 'temps_passe', 'maitrise','courbe_oubli', 'prochaine_revision', 'question', 'reponse']
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
 
@@ -73,6 +84,8 @@ class CSVHandler:
                         'nom_session': session["nom_session"],
                         'temps_passe': session["temps_passe"],
                         'maitrise': session["taux_maitrise"],
+                        'courbe_oubli': session["courbe_oubli"],
+                        'prochaine_revision': session["prochaine_revision"],
                         'question': q["question"],
                         'reponse': q["reponse"]
                     })

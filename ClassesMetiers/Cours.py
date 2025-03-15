@@ -25,7 +25,9 @@ class Course:
                         temps_passe=session["temps_passe"],
                         maitrise=session["taux_maitrise"],
                         db_manager=self.db,
-                        id_session=session["id_session"]
+                        id_session=session["id_session"],
+                        courbe_oublie=session["courbe_oubli"],
+                        prochaine_revision=session["prochaine_revision"]
                         )
                         for session in sessions_data
 
